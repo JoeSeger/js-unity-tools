@@ -36,7 +36,7 @@ To run the performance tests, follow these steps:
 
 The tests use a `ComponentTestData` scriptable object to configure test parameters such as:
 
-- `prefab`: The prefab to instantiate for testing.
+- `prefab`: The prefab to instantiate for testing. If the prefab is missing, a new `GameObject` is created and the required component is added.
 - `warmUpCount`: The number of warm-up iterations before measuring.
 - `iterations`: The number of iterations for the performance measurement.
 - `measurementCount`: The number of measurement samples to take.
