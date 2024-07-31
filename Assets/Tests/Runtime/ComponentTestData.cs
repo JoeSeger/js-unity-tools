@@ -9,5 +9,6 @@ namespace Tests.Runtime
         public int iterations = 1000000;
         public int measurementCount = 100;
         public int warmUpCount = 5;
+        public bool useStopWatch;
     }
 }

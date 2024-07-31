@@ -1,60 +1,22 @@
-using System;
-using System.Linq;
-using NUnit.Framework;
+using System.Collections;
 using Tests.Runtime;
 using Unity.PerformanceTesting;
-using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.TestTools;
 
 namespace Tests.Editor
 {
-    public class EditorGetComponentPerformanceTests
+    public class EditorGetComponentPerformanceTests : GetComponentPerformanceTestsBase
     {
-        private GameObject _testObject;
-        private ComponentTestData _componentTestData;
-
-        [SetUp]
-        public void SetUp()
+        [UnityTest, Performance]
+        public IEnumerator TestGetComponent_DamageableComponent()
         {
-            _componentTestData = Resources.FindObjectsOfTypeAll<ComponentTestData>().FirstOrDefault();
-            if (_componentTestData != null && _testObject == null)
-            {
-                _testObject = Object.Instantiate(_componentTestData.prefab);
-            }
+            yield return RunEditorTestCoroutine("GetComponent<DamageableComponent>", typeof(DamageableComponent));
         }
 
-        [TearDown]
-        public void TearDown()
+        [UnityTest, Performance]
+        public IEnumerator TestGetComponent_IDamageable()
         {
-            if (_testObject != null)
-            {
-                Object.DestroyImmediate(_testObject);
-            }
-        }
-
-        [Test, Performance]
-        public void TestGetComponent_DamageableComponent() =>
-            RunTest("GetComponent<DamageableComponent>", typeof(DamageableComponent));
-
-        [Test, Performance]
-        public void TestGetComponent_IDamageable() =>
-            RunTest("GetComponent<IDamageable>", typeof(IDamageable));
-
-        private void RunTest(string sampleGroup, Type type)
-        {
-            if (_componentTestData == null || _testObject == null) return;
-
-            Measure.Method(() =>
-                {
-                    for (int i = 0; i < _componentTestData.iterations; i++)
-                    {
-                        _testObject.TryGetComponent(type, out var _);
-                    }
-                })
-                .SampleGroup(sampleGroup)
-                .MeasurementCount(_componentTestData.measurementCount)
-                .WarmupCount(_componentTestData.warmUpCount)
-                .Run();
+            yield return RunEditorTestCoroutine("GetComponent<IDamageable>", typeof(IDamageable));
         }
     }
 }
