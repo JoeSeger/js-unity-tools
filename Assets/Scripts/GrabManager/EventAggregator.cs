@@ -4,11 +4,20 @@ using UnityEngine;
 
 namespace GrabManager
 {
-    [CreateAssetMenu(fileName = "EventAggregator",menuName = "EventAggregator")]
+    /// <summary>
+    /// EventAggregator is a ScriptableObject used for managing event subscriptions and publishing events.
+    /// It allows different parts of the application to communicate through events in a decoupled manner.
+    /// </summary>
+    [CreateAssetMenu(fileName = "EventAggregator", menuName = "EventAggregator")]
     public class EventAggregator : ScriptableObject
     {
         private readonly Dictionary<Type, List<Delegate>> _eventSubscribers = new();
 
+        /// <summary>
+        /// Subscribes one or more actions to an event of type TEvent.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of event to subscribe to.</typeparam>
+        /// <param name="subscribing">The actions to subscribe to the event.</param>
         public void Subscribe<TEvent>(params Action<TEvent>[] subscribing)
         {
             foreach (var action in subscribing)
@@ -23,6 +32,11 @@ namespace GrabManager
             }
         }
 
+        /// <summary>
+        /// Unsubscribes one or more actions from an event of type TEvent.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of event to unsubscribe from.</typeparam>
+        /// <param name="subscriber">The actions to unsubscribe from the event.</param>
         public void Unsubscribe<TEvent>(params Action<TEvent>[] subscriber)
         {
             foreach (var action in subscriber)
@@ -34,6 +48,11 @@ namespace GrabManager
             }
         }
 
+        /// <summary>
+        /// Publishes an event of type TEvent, invoking all subscribed actions.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of event to publish.</typeparam>
+        /// <param name="eventToPublish">The event instance to publish.</param>
         public void Publish<TEvent>(TEvent eventToPublish)
         {
             if (!_eventSubscribers.TryGetValue(typeof(TEvent), out var subscribers)) return;
