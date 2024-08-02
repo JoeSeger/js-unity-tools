@@ -10,41 +10,49 @@ namespace Tests.Runtime
 {
     public abstract class GetComponentPerformanceTestsBase
     {
-        protected GameObject TestObject;
-        protected ComponentTestData ComponentTestData;
+        private GameObject _testObject;
+        private ComponentTestData _componentTestData;
 
         [SetUp]
         public void SetUp()
         {
-            ComponentTestData = Resources.FindObjectsOfTypeAll<ComponentTestData>().FirstOrDefault();
-            if (ComponentTestData != null)
+            _componentTestData = Resources.FindObjectsOfTypeAll<ComponentTestData>().FirstOrDefault();
+            if (_componentTestData != null && _componentTestData.prefab != null)
             {
-                TestObject = Object.Instantiate(ComponentTestData.prefab);
+                _testObject = Object.Instantiate(_componentTestData.prefab);
+            }
+            else
+            {
+                _testObject = new GameObject("Performance Test Object ");
             }
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (TestObject != null)
-            {
-                Object.DestroyImmediate(TestObject);
-                TestObject = null;
-            }
+            if (_testObject == null) return;
+            Object.DestroyImmediate(_testObject);
+            _testObject = null;
         }
 
         protected IEnumerator RunTestCoroutine(string sampleGroup, Type type)
         {
-            if (ComponentTestData == null || TestObject == null) yield break;
+            if (_componentTestData == null || _testObject == null) yield break;
+
+            // Ensure the test object has the required component
+            if (!_testObject.TryGetComponent(type, out var _))
+            {
+                _testObject.AddComponent(type);
+            }
 
             // Warm-up phase
-            for (int i = 0; i < ComponentTestData.warmUpCount; i++)
+            for (var i = 0; i < _componentTestData.warmUpCount; i++)
             {
-                TestObject.TryGetComponent(type, out _);
+                _testObject.TryGetComponent(type, out _);
                 yield return null;
             }
 
-            if (ComponentTestData.useStopWatch)
+            if (_componentTestData.useStopWatch)
             {
                 yield return MeasureUsingStopwatch(sampleGroup, type);
             }
@@ -58,9 +66,9 @@ namespace Tests.Runtime
         {
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
-            for (int j = 0; j < ComponentTestData.iterations; j++)
+            for (var j = 0; j < _componentTestData.iterations; j++)
             {
-                TestObject.TryGetComponent(type, out _);
+                _testObject.TryGetComponent(type, out _);
             }
             stopwatch.Stop();
             UnityEngine.Debug.Log($"{sampleGroup} took {stopwatch.ElapsedMilliseconds} ms");
@@ -71,14 +79,14 @@ namespace Tests.Runtime
         {
             Measure.Method(() =>
             {
-                for (int j = 0; j < ComponentTestData.iterations / ComponentTestData.measurementCount; j++)
+                for (var j = 0; j < _componentTestData.iterations / _componentTestData.measurementCount; j++)
                 {
-                    TestObject.TryGetComponent(type, out _);
+                    _testObject.TryGetComponent(type, out _);
                 }
             })
             .SampleGroup(sampleGroup)
-            .MeasurementCount(ComponentTestData.measurementCount)
-            .WarmupCount(ComponentTestData.warmUpCount)
+            .MeasurementCount(_componentTestData.measurementCount)
+            .WarmupCount(_componentTestData.warmUpCount)
             .Run();
 
             yield return null;
@@ -86,9 +94,15 @@ namespace Tests.Runtime
 
         protected IEnumerator RunEditorTestCoroutine(string sampleGroup, Type type)
         {
-            if (ComponentTestData == null || TestObject == null) yield break;
+            if (_componentTestData == null || _testObject == null) yield break;
 
-            if (ComponentTestData.useStopWatch)
+            // Ensure the test object has the required component
+            if (!_testObject.TryGetComponent(type, out var _))
+            {
+                _testObject.AddComponent(type);
+            }
+
+            if (_componentTestData.useStopWatch)
             {
                 yield return MeasureUsingStopwatchEditor(sampleGroup, type);
             }
@@ -102,9 +116,9 @@ namespace Tests.Runtime
         {
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
-            for (int j = 0; j < ComponentTestData.iterations; j++)
+            for (var j = 0; j < _componentTestData.iterations; j++)
             {
-                TestObject.TryGetComponent(type, out _);
+                _testObject.TryGetComponent(type, out _);
             }
             stopwatch.Stop();
             UnityEngine.Debug.Log($"{sampleGroup} took {stopwatch.ElapsedMilliseconds} ms");
@@ -115,14 +129,14 @@ namespace Tests.Runtime
         {
             Measure.Method(() =>
             {
-                for (int j = 0; j < ComponentTestData.iterations / ComponentTestData.measurementCount; j++)
+                for (var j = 0; j < _componentTestData.iterations / _componentTestData.measurementCount; j++)
                 {
-                    TestObject.TryGetComponent(type, out _);
+                    _testObject.TryGetComponent(type, out _);
                 }
             })
             .SampleGroup(sampleGroup)
-            .MeasurementCount(ComponentTestData.measurementCount)
-            .WarmupCount(ComponentTestData.warmUpCount)
+            .MeasurementCount(_componentTestData.measurementCount)
+            .WarmupCount(_componentTestData.warmUpCount)
             .Run();
 
             yield return null;
